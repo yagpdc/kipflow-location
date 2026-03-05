@@ -9,12 +9,6 @@ import LogoDark from "../assets/logos/kipflow preto.svg";
 
 // ── Time-based sky theme ─────────────────────────────────────────
 
-function getTimeOfDay() {
-  const h = new Date().getHours();
-  if (h >= 6 && h < 18) return "morning";
-  return "night";
-}
-
 interface SkyTheme {
   gradientFrom: string;
   gradientVia: string;

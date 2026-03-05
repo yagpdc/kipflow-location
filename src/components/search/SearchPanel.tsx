@@ -50,7 +50,6 @@ export default function SearchPanel() {
     setUf,
     setMunicipio,
     clearFilters,
-    filteredCompanies,
     setFlyToTarget,
   } = useSearchStore()
 
