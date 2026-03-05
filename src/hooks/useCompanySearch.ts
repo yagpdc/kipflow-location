@@ -212,8 +212,28 @@ export function useCompanySearch() {
     }
 
     if (area) {
-      // Área desenhada pelo usuário tem prioridade
-      const results = applyFilters(MOCK_COMPANIES.filter((c) => isInsideArea(c, area)))
+      // Área desenhada pelo usuário tem prioridade — ignora filtros de localização (uf/município)
+      const areaResults = MOCK_COMPANIES.filter((c) => isInsideArea(c, area))
+      let results = areaResults
+
+      if (query) {
+        const q = query.toLowerCase()
+        results = results.filter(
+          (c) =>
+            c.nome_fantasia.toLowerCase().includes(q) ||
+            c.razao_social.toLowerCase().includes(q) ||
+            c.cnpj.includes(q) ||
+            c.cnae_descricao.toLowerCase().includes(q)
+        )
+      }
+      if (segmentos.length > 0) {
+        results = results.filter((c) => segmentos.includes(c.segmento))
+      }
+      if (cnaes.length > 0) {
+        results = results.filter((c) => cnaes.includes(c.cnae_codigo))
+      }
+      // NÃO aplica filtros de uf/municipio quando área está ativa
+
       setFilteredCompanies(results)
       setHeatmapCells([])
       return

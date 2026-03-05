@@ -197,6 +197,10 @@ function DrawingOverlay() {
   const map = useMap();
   const setArea = useSearchStore((s) => s.setArea);
   const area = useSearchStore((s) => s.filters.area);
+  const uf = useSearchStore((s) => s.filters.uf);
+  const municipio = useSearchStore((s) => s.filters.municipio);
+  const setUf = useSearchStore((s) => s.setUf);
+  const setMunicipio = useSearchStore((s) => s.setMunicipio);
   const [mode, setMode] = useState<DrawMode>("none");
   const [circleCenter, setCircleCenter] = useState<[number, number] | null>(
     null,
@@ -204,6 +208,8 @@ function DrawingOverlay() {
   const [polygonPoints, setPolygonPoints] = useState<[number, number][]>([]);
   const [circleRadius, setCircleRadius] = useState(10000);
   const [mousePos, setMousePos] = useState<[number, number] | null>(null);
+  const [showLocationConfirm, setShowLocationConfirm] = useState(false);
+  const [pendingDrawMode, setPendingDrawMode] = useState<DrawMode>("none");
 
   // Refs to avoid stale closures in map click handler
   const modeRef = useRef(mode);
@@ -259,6 +265,10 @@ function DrawingOverlay() {
         const { lat, lng } = e.latlng;
         const actualRadius = circleRadiusRef.current / 2;
         setCircleCenter([lat, lng]);
+        // Limpa filtros de localização ao posicionar o círculo (área tem prioridade)
+        const state = useSearchStore.getState();
+        if (state.filters.uf) state.setUf("");
+        if (state.filters.municipio) state.setMunicipio("");
         setArea({ type: "circle", center: [lat, lng], radius: actualRadius });
         zoomToCircle([lat, lng], actualRadius);
       } else if (modeRef.current === "polygon") {
@@ -311,6 +321,10 @@ function DrawingOverlay() {
   const finishPolygon = useCallback(() => {
     const pts = polygonPointsRef.current;
     if (pts.length >= 3) {
+      // Limpa filtros de localização ao fechar polígono (área tem prioridade)
+      const state = useSearchStore.getState();
+      if (state.filters.uf) state.setUf("");
+      if (state.filters.municipio) state.setMunicipio("");
       setArea({ type: "polygon", coordinates: pts });
       zoomToPolygon(pts);
     }
@@ -329,14 +343,44 @@ function DrawingOverlay() {
     setArea(null);
   };
 
+  const hasLocationFilter = !!(uf || municipio);
+
+  const clearLocationFilters = () => {
+    if (uf) setUf("");
+    if (municipio) setMunicipio("");
+  };
+
   const startCircle = () => {
+    if (hasLocationFilter) {
+      setPendingDrawMode("circle");
+      setShowLocationConfirm(true);
+      return;
+    }
     clearArea();
     setMode("circle");
   };
 
   const startPolygon = () => {
+    if (hasLocationFilter) {
+      setPendingDrawMode("polygon");
+      setShowLocationConfirm(true);
+      return;
+    }
     clearArea();
     setMode("polygon");
+  };
+
+  const handleConfirmClearLocation = () => {
+    clearLocationFilters();
+    clearArea();
+    setMode(pendingDrawMode);
+    setShowLocationConfirm(false);
+    setPendingDrawMode("none");
+  };
+
+  const handleCancelClearLocation = () => {
+    setShowLocationConfirm(false);
+    setPendingDrawMode("none");
   };
 
   const handleRadiusChange = (r: number) => {
@@ -344,6 +388,10 @@ function DrawingOverlay() {
     setCircleRadius(clamped);
     if (circleCenter) {
       const actualRadius = clamped / 2;
+      // Limpa filtros de localização ao ajustar raio
+      const state = useSearchStore.getState();
+      if (state.filters.uf) state.setUf("");
+      if (state.filters.municipio) state.setMunicipio("");
       setArea({ type: "circle", center: circleCenter, radius: actualRadius });
       zoomToCircle(circleCenter, actualRadius);
     }
@@ -366,9 +414,10 @@ function DrawingOverlay() {
   const controlsRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const polyInfoRef = useRef<HTMLDivElement>(null);
+  const locationConfirmRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const els = [controlsRef.current, sliderRef.current, polyInfoRef.current];
+    const els = [controlsRef.current, sliderRef.current, polyInfoRef.current, locationConfirmRef.current];
     for (const el of els) {
       if (!el) continue;
       L.DomEvent.disableClickPropagation(el);
@@ -522,6 +571,43 @@ function DrawingOverlay() {
             dashArray: "4,8",
           }}
         />
+      )}
+
+      {/* Confirmation dialog: clear location filter before drawing */}
+      {showLocationConfirm && (
+        <div
+          ref={locationConfirmRef}
+          className="absolute inset-0 z-[1200] flex items-center justify-center"
+          style={{ pointerEvents: "auto" }}
+        >
+          <div className="bg-card rounded-xl shadow-2xl px-6 py-5 max-w-sm border border-border">
+            <h3 className="font-bold text-text text-base mb-2">
+              Filtro de localização ativo
+            </h3>
+            <p className="text-sm text-text-muted mb-4">
+              Você tem um filtro de localização aplicado para{" "}
+              <strong className="text-text">
+                {uf || `"${municipio}"`}
+              </strong>
+              . Para desenhar uma área no mapa, o filtro de localização será
+              removido.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleConfirmClearLocation}
+                className="flex-1 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors"
+              >
+                Limpar e desenhar
+              </button>
+              <button
+                onClick={handleCancelClearLocation}
+                className="flex-1 px-4 py-2 text-sm font-medium rounded-lg bg-surface-alt text-text hover:bg-border transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

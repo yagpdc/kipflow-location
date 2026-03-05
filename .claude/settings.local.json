@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"confirmation\\\\|dialog\\\\|modal\")",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm run build)"
+    ]
+  }
+}
