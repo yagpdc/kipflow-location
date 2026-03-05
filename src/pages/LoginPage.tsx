@@ -387,7 +387,7 @@ export default function LoginPage() {
       return;
     }
     login(email, password);
-    navigate("/");
+    navigate("/mapa");
   };
 
   return (

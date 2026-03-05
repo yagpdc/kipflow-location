@@ -45,6 +45,27 @@ html, body, #root {
   color: var(--text-color);
 }
 
+/* Tailwind v4 removed cursor:pointer from interactive elements — restore it */
+button,
+[role="button"],
+a,
+select,
+summary,
+[type="button"],
+[type="submit"],
+[type="reset"],
+label[for],
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+button:disabled,
+[type="button"]:disabled,
+[type="submit"]:disabled,
+[type="reset"]:disabled {
+  cursor: not-allowed;
+}
+
 .leaflet-container {
   height: 100%;
   width: 100%;
