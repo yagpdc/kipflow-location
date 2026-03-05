@@ -4,42 +4,12 @@ import { useSearchStore } from '../../store/search.store'
 import { SEGMENTS } from '../../mocks/segments'
 import { CNAES } from '../../mocks/cnaes'
 import { MOCK_COMPANIES } from '../../mocks/companies'
+import { UF_COORDS } from '../../constants/uf-coords'
 
 const UF_OPTIONS = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
   'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO',
 ]
-
-// Centro aproximado de cada estado + zoom adequado (um pouco afastado pra ver o estado inteiro)
-const UF_COORDS: Record<string, { center: [number, number]; zoom: number }> = {
-  AC: { center: [-9.02, -70.81], zoom: 7 },
-  AL: { center: [-9.57, -36.78], zoom: 8 },
-  AM: { center: [-3.47, -65.10], zoom: 6 },
-  AP: { center: [1.41, -51.77], zoom: 7 },
-  BA: { center: [-12.97, -41.68], zoom: 6 },
-  CE: { center: [-5.20, -39.53], zoom: 7 },
-  DF: { center: [-15.83, -47.86], zoom: 10 },
-  ES: { center: [-19.19, -40.34], zoom: 8 },
-  GO: { center: [-15.98, -49.86], zoom: 7 },
-  MA: { center: [-5.42, -45.44], zoom: 7 },
-  MG: { center: [-18.10, -44.38], zoom: 7 },
-  MS: { center: [-20.51, -54.54], zoom: 7 },
-  MT: { center: [-12.64, -55.42], zoom: 6 },
-  PA: { center: [-3.79, -52.48], zoom: 6 },
-  PB: { center: [-7.28, -36.72], zoom: 8 },
-  PE: { center: [-8.38, -37.86], zoom: 7 },
-  PI: { center: [-7.72, -42.73], zoom: 7 },
-  PR: { center: [-24.89, -51.55], zoom: 7 },
-  RJ: { center: [-22.25, -42.66], zoom: 8 },
-  RN: { center: [-5.81, -36.59], zoom: 8 },
-  RO: { center: [-10.83, -62.80], zoom: 7 },
-  RR: { center: [1.99, -61.33], zoom: 7 },
-  RS: { center: [-29.75, -53.25], zoom: 7 },
-  SC: { center: [-27.45, -50.95], zoom: 7 },
-  SE: { center: [-10.57, -37.45], zoom: 9 },
-  SP: { center: [-22.19, -48.79], zoom: 7 },
-  TO: { center: [-10.17, -48.33], zoom: 7 },
-}
 
 export default function SearchPanel() {
   const {

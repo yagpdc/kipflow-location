@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FiSearch, FiFilter, FiX } from 'react-icons/fi'
 import { useSearchStore } from '../../store/search.store'
 import { SEGMENTS } from '../../mocks/segments'
 import { CNAES } from '../../mocks/cnaes'
+import { MOCK_COMPANIES } from '../../mocks/companies'
+import { UF_COORDS } from '../../constants/uf-coords'
 
 const UF_OPTIONS = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
@@ -19,9 +21,44 @@ export default function MobileFilters() {
     setMunicipio,
     clearFilters,
     filteredCompanies,
+    setFlyToTarget,
   } = useSearchStore()
   const [showFilters, setShowFilters] = useState(false)
   const [cnaeSearch, setCnaeSearch] = useState('')
+  const municipioDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleUfChange = (uf: string) => {
+    setUf(uf)
+    if (uf && UF_COORDS[uf]) {
+      setFlyToTarget(UF_COORDS[uf])
+    }
+  }
+
+  const handleMunicipioChange = (value: string) => {
+    setMunicipio(value)
+    if (municipioDebounceRef.current) clearTimeout(municipioDebounceRef.current)
+    if (!value || value.length < 3) return
+
+    municipioDebounceRef.current = setTimeout(() => {
+      const m = value.toLowerCase()
+      const matching = MOCK_COMPANIES.filter((c) =>
+        c.municipio.toLowerCase().includes(m)
+      )
+      if (matching.length === 0) return
+
+      const lat = matching.reduce((s, c) => s + c.latitude, 0) / matching.length
+      const lng = matching.reduce((s, c) => s + c.longitude, 0) / matching.length
+      const uniqueCities = new Set(matching.map((c) => `${c.municipio}-${c.uf}`))
+      const zoom = uniqueCities.size === 1 ? 12 : 10
+      setFlyToTarget({ center: [lat, lng], zoom })
+    }, 600)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (municipioDebounceRef.current) clearTimeout(municipioDebounceRef.current)
+    }
+  }, [])
 
   const filteredCnaes = cnaeSearch
     ? CNAES.filter(
@@ -154,7 +191,7 @@ export default function MobileFilters() {
             <div className="space-y-2">
               <select
                 value={filters.uf}
-                onChange={(e) => setUf(e.target.value)}
+                onChange={(e) => handleUfChange(e.target.value)}
                 className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-input text-text"
               >
                 <option value="">Todos os estados</option>
@@ -166,7 +203,7 @@ export default function MobileFilters() {
                 type="text"
                 placeholder="Cidade..."
                 value={filters.municipio}
-                onChange={(e) => setMunicipio(e.target.value)}
+                onChange={(e) => handleMunicipioChange(e.target.value)}
                 className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-input text-text"
               />
             </div>
