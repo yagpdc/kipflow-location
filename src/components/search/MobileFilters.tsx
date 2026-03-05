@@ -5,10 +5,16 @@ import { SEGMENTS } from '../../mocks/segments'
 import { CNAES } from '../../mocks/cnaes'
 import { MOCK_COMPANIES } from '../../mocks/companies'
 import { UF_COORDS } from '../../constants/uf-coords'
+import CustomSelect from '../ui/CustomSelect'
 
 const UF_OPTIONS = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
   'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO',
+]
+
+const UF_SELECT_OPTIONS = [
+  { value: '', label: 'Todos os estados' },
+  ...UF_OPTIONS.map((uf) => ({ value: uf, label: uf })),
 ]
 
 export default function MobileFilters() {
@@ -189,16 +195,12 @@ export default function MobileFilters() {
               Localização
             </label>
             <div className="space-y-2">
-              <select
+              <CustomSelect
                 value={filters.uf}
-                onChange={(e) => handleUfChange(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-input text-text"
-              >
-                <option value="">Todos os estados</option>
-                {UF_OPTIONS.map((uf) => (
-                  <option key={uf} value={uf}>{uf}</option>
-                ))}
-              </select>
+                onChange={handleUfChange}
+                options={UF_SELECT_OPTIONS}
+                placeholder="Todos os estados"
+              />
               <input
                 type="text"
                 placeholder="Cidade..."
